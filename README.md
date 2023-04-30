@@ -1,6 +1,8 @@
 # CBuild
 A simplistic build system inspired by Makefile for compiled languages that include other files similarly to c/c++.
 
+Read more at https://zufalige-daten.github.io/CBuild.html
+
 ----------'cbuild' (command)----------
 Ensure you have a file named 'cbuild.make' in the directory the command is run in.
 
