@@ -39,17 +39,24 @@ void must(bool cond){
 	}
 }
 
-std::string src_dir;
-std::string inc_dir;
-std::string obj_dir;
-std::string obj_main;
-std::string out_bin;
-std::string src_ext;
-std::string obj_ext;
-std::string inc_line_lib;
-std::string inc_line_local;
-std::string com_cmd;
-std::string lin_cmd;
+std::string src_dir = "./";
+std::string inc_dir = "./";
+std::string obj_dir = "./";
+std::string obj_main = "main.o";
+std::string out_bin = "a.out";
+std::string src_ext = "c";
+std::string obj_ext = "o";
+std::string inc_line_mode = "lib_local";
+std::string inc_line_lib = "#include <>";
+std::string inc_line_local = "#include \"\"";
+std::string com_cmd = "gcc -c -o {output} {input}";
+std::string lin_cmd = "gcc -o {output} {input}";
+std::string multi_src = "false";
+std::vector<std::string> multi_src_ext;
+std::vector<std::string> multi_inc_line_mode;
+std::vector<std::string> multi_inc_line_lib;
+std::vector<std::string> multi_inc_line_local;
+std::vector<std::string> multi_com_cmd;
 
 class fileentry{
 public:
@@ -138,15 +145,15 @@ std::string replaceall(std::string original, std::string from, std::string to){
 	return results;
 }
 
-std::vector<std::string> get_src_deps(std::string src){
+std::vector<std::string> get_src_deps(std::string src, std::string inc_line_mode_str, std::string inc_line_lib_str, std::string inc_line_local_str){
 	std::vector<std::string> depsd;
-	std::vector<Token> lib_pattern = Tokenize(inc_line_lib, "//", true, false, false);
-	std::vector<Token> local_pattern = Tokenize(inc_line_local, "//", true, false, false);
+	std::vector<Token> lib_pattern = Tokenize(inc_line_lib_str, "//", true, false, false);
+	std::vector<Token> local_pattern = Tokenize(inc_line_local_str, "//", true, false, false);
 	string line;
 	ifstream filesrc(src);
 	while(getline(filesrc, line)){
 		std::vector<Token> line_pattern = Tokenize(line, "//", true, false, false);
-		if(line_pattern.size() == lib_pattern.size()){
+		if(line_pattern.size() == lib_pattern.size() && (inc_line_mode_str == "lib" || inc_line_mode_str == "lib_local" || inc_line_mode_str == "local_lib")){
 			bool status = true;
 			std::string filenm_out;
 			for(int m = 0; m < line_pattern.size(); m++){
@@ -166,7 +173,7 @@ std::vector<std::string> get_src_deps(std::string src){
 					if(!contains(depsd, inc_dir + filenm_out)){
 						depsd.push_back(inc_dir + filenm_out);
 					}
-					std::vector<std::string> sdeps = get_src_deps(inc_dir + filenm_out);
+					std::vector<std::string> sdeps = get_src_deps(inc_dir + filenm_out, inc_line_mode_str, inc_line_lib_str, inc_line_local_str);
 					for(std::string sdep : sdeps){
 						if(!contains(depsd, sdep)){
 							depsd.push_back(sdep);
@@ -175,7 +182,7 @@ std::vector<std::string> get_src_deps(std::string src){
 				}
 			}
 		}
-		if(line_pattern.size() == local_pattern.size()){
+		if(line_pattern.size() == local_pattern.size() && (inc_line_mode_str == "local" || inc_line_mode_str == "local_lib" || inc_line_mode_str == "lib_local")){
 			bool status = true;
 			std::string filenm_out;
 			for(int m = 0; m < local_pattern.size(); m++){
@@ -191,11 +198,11 @@ std::vector<std::string> get_src_deps(std::string src){
 				}
 			}
 			if(status){
-				if(std::filesystem::exists(src_dir + filenm_out)){
-					if(!contains(depsd, src_dir + filenm_out)){
-						depsd.push_back(src_dir + filenm_out);
+				if(std::filesystem::exists(filenm_out)){
+					if(!contains(depsd, filenm_out)){
+						depsd.push_back(filenm_out);
 					}
-					std::vector<std::string> sdeps = get_src_deps(src_dir + filenm_out);
+					std::vector<std::string> sdeps = get_src_deps(filenm_out, inc_line_mode_str, inc_line_lib_str, inc_line_local_str);
 					for(std::string sdep : sdeps){
 						if(!contains(depsd, sdep)){
 							depsd.push_back(sdep);
@@ -207,6 +214,9 @@ std::vector<std::string> get_src_deps(std::string src){
 	}
 	return depsd;
 }
+
+int multi_src_compile(void);
+int mono_src_compile(void);
 
 int main(void){
 	string config = "";
@@ -259,6 +269,13 @@ int main(void){
 			must(istype(TokenType::CHAR)||istype(TokenType::STRING));
 			out_bin = toks[i].Text;
 		}
+		else if(isident("object_ext")){
+			i++;
+			must(isop("="));
+			i++;
+			must(istype(TokenType::CHAR)||istype(TokenType::STRING));
+			obj_ext = toks[i].Text;
+		}
 		else if(isident("source_ext")){
 			i++;
 			must(isop("="));
@@ -266,12 +283,12 @@ int main(void){
 			must(istype(TokenType::CHAR)||istype(TokenType::STRING));
 			src_ext = toks[i].Text;
 		}
-		else if(isident("object_ext")){
+		else if(isident("include_line_mode")){
 			i++;
 			must(isop("="));
 			i++;
 			must(istype(TokenType::CHAR)||istype(TokenType::STRING));
-			obj_ext = toks[i].Text;
+			inc_line_mode = toks[i].Text;
 		}
 		else if(isident("include_line_lib")){
 			i++;
@@ -301,12 +318,175 @@ int main(void){
 			must(istype(TokenType::CHAR)||istype(TokenType::STRING));
 			lin_cmd = toks[i].Text;
 		}
+		else if(isident("multi_source")){
+			i++;
+			must(isop("="));
+			i++;
+			must(istype(TokenType::CHAR)||istype(TokenType::STRING));
+			multi_src = toks[i].Text;
+		}
+		else if(isop("{")){
+			i++;
+			while(!isop("}")){
+				if(isident("source_ext")){
+					i++;
+					must(isop("="));
+					i++;
+					must(istype(TokenType::CHAR)||istype(TokenType::STRING));
+					multi_src_ext.push_back(toks[i].Text);
+				}
+				else if(isident("include_line_mode")){
+					i++;
+					must(isop("="));
+					i++;
+					must(istype(TokenType::CHAR)||istype(TokenType::STRING));
+					multi_inc_line_mode.push_back(toks[i].Text);
+				}
+				else if(isident("include_line_lib")){
+					i++;
+					must(isop("="));
+					i++;
+					must(istype(TokenType::CHAR)||istype(TokenType::STRING));
+					multi_inc_line_lib.push_back(toks[i].Text);
+				}
+				else if(isident("include_line_local")){
+					i++;
+					must(isop("="));
+					i++;
+					must(istype(TokenType::CHAR)||istype(TokenType::STRING));
+					multi_inc_line_local.push_back(toks[i].Text);
+				}
+				else if(isident("compiler_command")){
+					i++;
+					must(isop("="));
+					i++;
+					must(istype(TokenType::CHAR)||istype(TokenType::STRING));
+					multi_com_cmd.push_back(toks[i].Text);
+				}
+				else{
+					std::cout << "cbuild - ERROR: (" << multi_src_ext[multi_src_ext.size()-1] << ") invalid parameter in config file (" << toks[i].Line << ") '" << toks[i].Text << "'" << std::endl;
+					return 0;
+				}
+				i++;
+			}
+		}
 		else{
-			std::cout << "cbuild - ERROR: invalid parameter in config file '" << toks[i].Text << "'" << std::endl;
+			std::cout << "cbuild - ERROR: invalid parameter in config file (" << toks[i].Line << ") '" << toks[i].Text << "'" << std::endl;
 			return 0;
 		}
 		i++;
 	}
+	if(multi_src == "true"){
+		return multi_src_compile();
+	}
+	else{
+		return mono_src_compile();
+	}
+}
+
+int multi_src_compile(void){
+	std::vector<std::string> srcfiles_init = listfiles(src_dir);
+	std::vector<std::string> srcfiles;
+	for(std::string srcfile : srcfiles_init){
+		for(std::string src_ext_str : multi_src_ext){
+			if(ext_fname(srcfile, src_ext_str)){
+				srcfiles.push_back(srcfile);
+			}
+		}
+	}
+	if(!endswith(src_dir, "/")){
+		src_dir += "/";
+	}
+	if(!endswith(obj_dir, "/")){
+		obj_dir += "/";
+	}
+	if(!endswith(inc_dir, "/")){
+		inc_dir += "/";
+	}
+	std::vector<std::string> objfiles;
+	for(std::string srcfile : srcfiles){
+		for(std::string src_ext_str : multi_src_ext){
+			if(ext_fname(srcfile, src_ext_str)){
+				objfiles.push_back(forward_single_replace(
+					reverse_single_replace(srcfile, "." + src_ext_str, "." + obj_ext),
+					src_dir, obj_dir));
+			}
+		}
+	}
+	for(int l = 0; l < objfiles.size(); l++){
+		std::vector<std::string> deps;
+		deps.push_back(srcfiles[l]);
+		fileentries.push_back(fileentry(objfiles[l], deps));
+	}
+	for(int n = 0; n < srcfiles.size(); n++){
+		std::vector<std::string> deps;
+		for(int y = 0; y < multi_src_ext.size(); y++){
+			if(ext_fname(srcfiles[n], multi_src_ext[y])){
+				deps = get_src_deps(srcfiles[n], multi_inc_line_mode[0], multi_inc_line_lib[0], multi_inc_line_local[0]);
+			}
+		}
+		for(int o = 0; o < deps.size(); o++){
+			fileentries[n].deps.push_back(deps[o]);
+		}
+	}
+	std::vector<std::string> tocom;
+	for(fileentry entry : fileentries){
+		int objlmodtime = lmodtime(entry.filename);
+		for(int p = 0; p < entry.deps.size(); p++){
+			int srclmodtime = lmodtime(entry.deps[p]);
+			if(srclmodtime > objlmodtime && !contains(tocom, entry.deps[0])){
+				tocom.push_back(entry.deps[0]);
+			}
+		}
+	}
+	if(tocom.size() == 0){
+		std::cout << "cbuild - no changes." << std::endl;
+		return 0;
+	}
+	for(std::string filenm : tocom){
+		std::string inputd = filenm;
+		std::string outputd;
+		std::string cmd;
+		for(int n = 0; n < multi_src_ext.size(); n++){
+			if(ext_fname(filenm, multi_src_ext[n])){
+				outputd = forward_single_replace(
+					reverse_single_replace(filenm, "." + multi_src_ext[n], "." + obj_ext),
+					src_dir, obj_dir);
+				cmd = replaceall(replaceall(multi_com_cmd[n], "{input}", inputd), "{output}", outputd);
+			}
+		}
+		const char * cmd_sys = cmd.c_str();
+		int status = system(cmd_sys);
+		if(status == 0){
+			std::cout << " - " << outputd << " [SUCCESS]" << std::endl;
+		}
+		else{
+			std::cout << " - " << outputd << " [FAILED] (see above.)" << std::endl;
+			return -1;
+		}
+	}
+	std::string allobjs = obj_dir + obj_main + " ";
+	for(fileentry entry : fileentries){
+		if(entry.filename != obj_dir + obj_main){
+			allobjs += entry.filename + " ";
+		}
+	}
+	allobjs = reverse_single_replace(allobjs, " ", "");
+	std::string cmd = replaceall(replaceall(lin_cmd, "{input}", allobjs), "{output}", out_bin);
+	std::cout << cmd << "\n";
+	const char * cmd_sys = cmd.c_str();
+	int status = system(cmd_sys);
+	if(status == 0){
+		std::cout << " - " << out_bin << " [SUCCESS]" << std::endl;
+	}
+	else{
+		std::cout << " - " << out_bin << " [FAILED] (see above.)" << std::endl;
+		return -1;
+	}
+	return 0;
+}
+
+int mono_src_compile(void){
 	std::vector<std::string> srcfiles_init = listfiles(src_dir);
 	std::vector<std::string> srcfiles;
 	for(std::string srcfile : srcfiles_init){
@@ -335,7 +515,7 @@ int main(void){
 		fileentries.push_back(fileentry(objfiles[l], deps));
 	}
 	for(int n = 0; n < srcfiles.size(); n++){
-		std::vector<std::string> deps = get_src_deps(srcfiles[n]);
+		std::vector<std::string> deps = get_src_deps(srcfiles[n], inc_line_mode, inc_line_lib, inc_line_local);
 		for(int o = 0; o < deps.size(); o++){
 			fileentries[n].deps.push_back(deps[o]);
 		}

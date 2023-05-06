@@ -1,0 +1,24 @@
+source_dir = 'src'
+include_dir = 'include'
+object_dir = 'obj'
+object_main = 'main.o'
+output_binary = 'test'
+object_ext = 'o'
+multi_source = 'true'
+
+{
+	source_ext = 'c'
+	include_line_mode = 'lib_local'
+	include_line_lib = '#include <>'
+	include_line_local = '#include ""'
+	compiler_command = 'gcc -c -m64 -o {output} {input} -I include'
+}
+
+{
+	source_ext = 'asm'
+	include_line_mode = 'local'
+	include_line_local = '%include ""'
+	compiler_command = 'nasm -felf64 -o {output} {input}'
+}
+
+linker_command = 'gcc -m64 -o {output} {input}'

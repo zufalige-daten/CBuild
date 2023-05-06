@@ -53,7 +53,9 @@ namespace Theta {
 	public:
 		TokenType Type;
 		string Text;
+		int Line;
 		Token(TokenType type, string text) {
+			Line = line;
 			Type = type;
 			Text = text;
 		}
@@ -66,7 +68,7 @@ namespace Theta {
 		int oldindent = 0;
 		int newindent = 0;
 		while (true) {
-			if (incode[i-1] == '\n'){
+			if (incode[i-1] == '\n' && useindent){
 				// coming from newline
 				newindent = 0;
 				while(incode[i] == '\t' || incode[i] == ' '){

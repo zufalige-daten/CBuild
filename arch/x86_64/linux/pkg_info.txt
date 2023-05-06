@@ -1,0 +1,12 @@
+Package: cbuild
+Version: 2.0.0
+Architecture: amd64
+Depends: libc6, libstdc++6, libc++1
+Recomends: build-essential
+Section: programming
+Priority: optional
+Maintainer: Zufalige Daten <11mangu01@gmail.com>
+Description: A simplistic build system.
+ Providing similar simple functionality to packages like makefile
+ and other features that make the development experience easier
+ for programmers when building their programs.
