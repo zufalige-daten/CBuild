@@ -1,5 +1,5 @@
 # CBuild
-A simplistic build system inspired by Makefile for compiled languages that include other files similarly to c/c++.
+A simplistic build system inspired by Makefile for compiled languages that include other files from include directories and from local directories.
 
 Read more at https://zufalige-daten.github.io/CBuild.html
 
