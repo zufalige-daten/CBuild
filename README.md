@@ -3,37 +3,57 @@ A simplistic build system inspired by Makefile for compiled languages that inclu
 
 Read more at https://zufalige-daten.github.io/CBuild.html
 
-----------'cbuild' (command)----------
-Ensure you have a file named 'cbuild.make' in the directory the command is run in.
+command 'cbuild':
+	Ensure file 'cbuild.make' is in the directory.
 
-----------'cbuild.make' (file)----------
-'source_dir': The directory containing the source code files.
+'':
+	In a source file with isolated single quotes within those quotes the project name is specified.
+[attribute] = '':
+	Sets [attribute] to the contents of the following single quotes (eg "object_dir = 'obj'")
 
-'include_dir': Any headers or similar files the source code files depend on to function (only ones that would change during the development process/not standard library ones).
+attribute(s):
+	project_root:
+		The root directory for the project (./ for the current directory);
+	binary_out:
+		The output binary file.
+	source_dir:
+		The source directory.
+	object_dir:
+		The directory containing the emitted object files.
+	include_dir:
+		The directory containing the include (header files) that are accessed by the source files.
+	object_ext:
+		The file extension for the object files emmited by the compilers during the build process (do not precede with '.' only the text of the file extension eg "object_ext = 'o'").
+	object_main:
+		The object file selected to be placed first in the linking process.
+	linker_command:
+		Command to be executed when linking (place '{input}' in place of an input file would be specified and also place '{output}' in place of when an output file would be specified).
+	{}:
+		Within these a new 'profile' is created that cbuild accesses as a different source file type.
 
-'object_dir': The directory containing the compiler outputs as object files before linking.
+profile specific attributes:
+	include_type:
+		A list (seperated by any character) containing any number of the three keywords: 'lib' 'local' and 'root' which tell cbuild the types of include file/header file including are supported by this profile's language (as different programming languages have different methods of including files).
+	include_lib:
+		(Only valid when 'lib' is specified in include_types) specifies the format taken by the include string in the programming language in the profile (the code for including a header file from the local include directory except replacing '%' with '%%' and the area where the header file name would go with '%s' eg '%%include "%s"' is seen as '%include "include file.h"')
+	include_local:
+		(Only valid when 'local' is specified in include_types) above except for local relative includes.
+	include_root:
+		(Only valid when 'root' is specified in include_types) above except for root relative includes.
+	source_ext:
+		The file extension for the source files for the programming language covered by this profile (do not precede with '.' and only must contain the text of the extension eg "source_ext = 'asm'").
+	compiler_command:
+		The command for the compilation of the active profile's loaded source files (replace the input file in the command with '{input}', the output file (must be an object file so adjust your compiler arguments accordingly) with '{output}', and the position in which the include directory is usually specified in programming languages supporting 'lib' would be replaced with '{include}' in the config file).
 
-'object_main': The object file that comes first during the linking process (important for if you are compiling the program to a flat binary and want the entry point to be fixed, not important for anything else).
+include types:
+	'lib':
+		Specifies that the language specified in the profile supports including from include files (header files) relative to the project's local include directory (specified in include_dir).
+	'local':
+		Specifies that the language specified in the profile supports including from include files (header files) relative to the source directory (specified in source_dir).
+	'root':
+		Specified that the language specified in the profile supports including from include files (header files) relative to the root of the project (specified in project_root).
 
-'output_binary': The file to link all the objects to.
-
-'source_ext': The file extension for the source code files in 'source_dir'.
-
-'object_ext': The file extension for the object files in the directory of 'object_dir'.
-
-'include_line_lib': A line of code specifieng an example line for if the program is including anything from the 'include_dir' directory or any other directories specified by the operating system (anything in '<>' or '""' are seen as the file's name relative to the 'include_dir' directory).
-
-'include_line_local': A line of code specifieng an example line for if the program is including a header file or otherwise into the source code file (anything in '<>' or '""' will be seen as the file's path relative to the 'source_dir' directory).
-
-'compiler_command': A line of shell code that specifies the command to run on all source files to be compiled into object files ('{output}' is placed in place of the object file and '{input}' is placed in place of the source code file).
-
-'linker_command': A line of shell code that specifies the command to run at the end if changes have been made to link all of the object files into the output binary ('{output}' is in place of the output binary and '{input}' is placed in place of all of the object files inside of the object files' directory).
-
-'include_line_mode': 'lib_local' Or 'local_lib' if the program supports both types of including, 'lib' if only library including is supported, or 'local' if only local includes are implemented.
-
-'multi_source': 'true' To use multiple source file types/extensions/to use multiple programming languages for 1 executable or 'false' to just use 1 programming language to be compiled and linked into the executable output.
-
-'{}': 'compiler_command', 'include_line_lib', 'include_line_local' And 'include_line_mode' inside of this will be treated as a seperate collection of source files to be compiled and linked within the same executable as all other source files. (you must set 'multi_source' to ''true'' for this to work and the source file ext must be specified within the attribute 'source_ext' as a string);
+Note: all attributes and structures specified above can be placed in any order seen fit by the configurator.
 
 ----------(info)----------
 cbuild Only compiles a source code file into an object file if either the source code file or any of the files it includes as headers/library files inside of the library directory 'include_dir' directory have changed since the building of that object file.
