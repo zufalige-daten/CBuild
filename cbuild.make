@@ -24,4 +24,3 @@ object_main = 'main.o'
 }
 
 linker_command = 'gcc -m64 -o {output} {input}'
-
