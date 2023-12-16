@@ -2,7 +2,7 @@
  * GNU GENERAL PUBLIC LICENSE
  * Version 3, 29 June 2007
  *
- * The following project "CBuild" is copywrighted by Gunraj Singh Mann and published under the GNU General
+ * The following project "CBuild" is written by Gunraj Singh Mann and published under the GNU General
  * Public License.
  *
  * You may freely modify and distribute this source code and the binary executable file as long as you reference
@@ -12,7 +12,7 @@
  * This file is: "main.cpp".
 */
 
-#define DEBUG true
+#define DEBUG false
 #define DBG if(DEBUG){cout<<__LINE__<<": line number\n";fflush(stdout);}
 
 #include <iostream>
@@ -75,10 +75,14 @@ int main(int argc, char **argv){
 	// parse arguments
 	int argindex = 1;
 	bool dobuild = true;
+	bool doyes = true;
 	for(; argindex < argc; argindex++){
 		if(strcmp(argv[argindex], "-v") == 0){
 			dobuild = false;
-			cout << "cbuild: 3.0.0. vername: REWRITE001." << "\n";
+			cout << "cbuild: 3.5.0. vername: RECURSIVE." << "\n";
+		}
+		else if(strcmp(argv[argindex], "clean") == 0){
+			doyes = false;
 		}
 		else if(strcmp(argv[argindex], "-h") == 0){
 			dobuild = false;
@@ -86,6 +90,7 @@ int main(int argc, char **argv){
 			cout << "[ARGUMENTS]" << "\n";
 			cout << "\t-v: Display CBuild version." << "\n";
 			cout << "\t-h: Display CBuild help." << "\n";
+			cout << "\tclean: Clear project object directory of all intermidiate compiler objects." << "\n";
 		}
 		else{
 			cout << "ERROR: Invalid argument: " << argv[argindex] << "." << "\n";
@@ -124,8 +129,17 @@ int main(int argc, char **argv){
 	// parse and apply the config file tokens (by apply it is ment to set the corresponding variables to the specified values)
 	parseapp(configfiletoks);
 	chdir(proj_root.c_str());
+	if(!doyes){
+		filesystem::remove_all(obj_dir);
+		filesystem::create_directory(obj_dir);
+		cout << "Cleared intermiediate." << "\n";
+		return 0;
+	}
 	// get the list of source files
 	vector<string> srcfilelist = getlistsrcfilesdir();
+	for(string dirsq : object_dirs){
+		filesystem::create_directories(obj_dir + "/" + dirsq);
+	}
 	// for(string ent : srcfilelist){
 	// 	cout << ent << "\n";
 	// }
@@ -141,12 +155,14 @@ int main(int argc, char **argv){
 		}
 		srcfilelist_arranged.push_back(prfl_list);
 	}
+	// cout << "start:\n";
 	// for(vector<string> relate : srcfilelist_arranged){
 	// 	for(string ent : relate){
 	// 		cout << ent << "\n";
 	// 	}
 	// 	cout << "\n";
 	// }
+	// while(1);
 	for(int prfl_i = 0; prfl_i < profiles.size(); prfl_i++){
 		vector<vector<string>> relates_temp = getsrcfilerecurrels(srcfilelist_arranged[prfl_i], profiles[prfl_i]);
 		urelates.insert(urelates.end(), relates_temp.begin(), relates_temp.end());
@@ -183,13 +199,21 @@ int main(int argc, char **argv){
 	// 	}
 		
 	// }
+
+	// return 0;
 	
 	// create a list of source files that need to be compiled because their timespamps are greater than the timestamps of the object files relating to those source files or one of their dependancies changed
 	vector<string> srccompilelist = compilelistget(relates);
+	// for(string h : srccompilelist){
+	// 	cout << h << "\n";
+	// }
+	// return 0;
 	vector<string> objectfiles;
 	for(string srcfileli : srcfilelist){
-		objectfiles.push_back(obj_dir + "/" + filesystem::absolute(srcfileli).filename().replace_extension(obj_ext).string());
+		objectfiles.push_back(replacerootdir(filesystem::relative(srcfileli).replace_extension(obj_ext).string(), obj_dir));
+		// cout << replacerootdir(filesystem::relative(srcfileli).replace_extension(obj_ext).string(), obj_dir) << "\n";
 	}
+	// return 0;
 	if(srccompilelist.size() == 0){
 		cout << "cbuild - no changes.\n";
 		return 0;

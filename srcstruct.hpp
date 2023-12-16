@@ -2,7 +2,7 @@
  * GNU GENERAL PUBLIC LICENSE
  * Version 3, 29 June 2007
  *
- * The following project "CBuild" is copywrighted by Gunraj Singh Mann and published under the GNU General
+ * The following project "CBuild" is written by Gunraj Singh Mann and published under the GNU General
  * Public License.
  *
  * You may freely modify and distribute this source code and the binary executable file as long as you reference
@@ -11,6 +11,8 @@
  *
  * This file is: "srcstruct.hpp".
 */
+
+#pragma once
 
 #include <vector>
 #include <iostream>
@@ -22,20 +24,35 @@
 #include "msafe.hpp"
 #include <sys/stat.h>
 #include <unistd.h>
+#include <set>
 
 using namespace boost::algorithm;
 using namespace std;
 
+vector<string> object_dirs;
+
 vector<string> getlistsrcfilesdir(){
 	vector<string> ret;
-	for (const auto & entry : filesystem::directory_iterator(src_dir)){
+	for (const auto & entry : filesystem::recursive_directory_iterator(src_dir)){
 		string tmp = filesystem::path(entry).string();
 		for(profile prfl : profiles){
 			if(filesystem::path(tmp).extension().string() == "." + prfl.src_ext){
 				ret.push_back(tmp);
+				string srcless_path = tmp.substr(tmp.find_first_of(filesystem::path::preferred_separator));
+				string new_dir = srcless_path.substr(1, srcless_path.find_last_of(filesystem::path::preferred_separator) - 1);
+				if(filesystem::is_directory(src_dir + "/" + new_dir)){
+					if(find(object_dirs.begin(), object_dirs.end(), new_dir) == object_dirs.end()){
+						object_dirs.push_back(new_dir);
+					}
+				}
 			}
 		}
 	}
+	return ret;
+}
+
+string replacerootdir(string repath, string root_dir){
+	string ret = root_dir + repath.substr(repath.find_first_of(filesystem::path::preferred_separator));
 	return ret;
 }
 

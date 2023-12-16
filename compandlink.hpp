@@ -2,7 +2,7 @@
  * GNU GENERAL PUBLIC LICENSE
  * Version 3, 29 June 2007
  *
- * The following project "CBuild" is copywrighted by Gunraj Singh Mann and published under the GNU General
+ * The following project "CBuild" is written by Gunraj Singh Mann and published under the GNU General
  * Public License.
  *
  * You may freely modify and distribute this source code and the binary executable file as long as you reference
@@ -20,11 +20,12 @@
 #include <filesystem>
 #include <vector>
 #include <boost/algorithm/string/replace.hpp>
+#include "srcstruct.hpp"
 
 vector<string> compilelistget(vector<vector<string>> relates){
 	vector<string> srccompilelist;
 	for(vector<string> relate : relates){
-		string object_file = obj_dir + "/" + filesystem::absolute(relate[0]).filename().replace_extension("." + obj_ext).string();
+		string object_file = replacerootdir(filesystem::relative(relate[0]).replace_extension(obj_ext).string(), obj_dir);
 		if(filesystem::exists(object_file)){
 			uint64_t lmodified_obj = filesystem::last_write_time(object_file).time_since_epoch().count();
 			for(int i = 0; i < relate.size(); i++){
@@ -47,7 +48,7 @@ void recompile(vector<string> srccompilelist){
 	for(string srccompileli : srccompilelist){
 		for(profile prfl : profiles){
 			if(filesystem::absolute(srccompileli).extension().string() == "." + prfl.src_ext){
-				string compilecommand = boost::replace_all_copy(boost::replace_all_copy(boost::replace_all_copy(prfl.comp_cmd, "{input}", srccompileli), "{output}", obj_dir + "/" + filesystem::absolute(srccompileli).filename().replace_extension("." + obj_ext).string()), "{include}", inc_dir);
+				string compilecommand = boost::replace_all_copy(boost::replace_all_copy(boost::replace_all_copy(prfl.comp_cmd, "{input}", srccompileli), "{output}", replacerootdir(filesystem::relative(srccompileli).replace_extension(obj_ext).string(), obj_dir)), "{include}", inc_dir);
 				int result = system(compilecommand.c_str());
 				cout << " - " << srccompileli << " ";
 				if(result == 0){
