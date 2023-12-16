@@ -1,0 +1,7 @@
+cbuild
+*.o
+*.deb
+.vscode
+example
+cbuild.make
+
