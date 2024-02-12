@@ -1,7 +1,7 @@
-cbuild
-*.o
-*.deb
 .vscode
+arch
 example
-cbuild.make
-
+cbuild
+cbuild_*
+cbuild.*
+package.sh

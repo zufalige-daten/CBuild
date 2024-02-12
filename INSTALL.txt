@@ -1,0 +1,4 @@
+To build run:
+	make
+To install run:
+	make install
