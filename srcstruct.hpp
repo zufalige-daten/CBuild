@@ -25,8 +25,10 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <set>
+#include <boost/filesystem.hpp>
 
 using namespace boost::algorithm;
+using namespace boost;
 using namespace std;
 
 vector<string> object_dirs;

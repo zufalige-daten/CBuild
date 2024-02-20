@@ -1,1 +1,2 @@
-g++ main.cpp -o cbuild -m64
+clang main.cpp -o cbuild
+
