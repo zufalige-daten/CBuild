@@ -5,61 +5,46 @@
  * The following project "CBuild" is written by Gunraj Singh Mann and published under the GNU General
  * Public License.
  *
- * You may freely modify and distribute this source code and the binary executable file as long as you reference
- * "Gunraj Singh Mann" or "Zufalige Daten On Github" as the origional programmer of any source code taken from
- * this project or this project as a whole.
- *
- * This file is: "main.cpp".
+ * This file is "main.cc".
 */
 
-#define DEBUG false
-#define DBG if(DEBUG){cout<<__LINE__<<": line number\n";fflush(stdout);}
-
+#include <cstddef>
 #include <iostream>
 #include <string.h>
 #include <vector>
 #include <fstream>
+#include <filesystem>
 #include <source_location>
+#include <main.hh>
 
 using namespace std;
 
-typedef struct{
-	string inc_type;
-	string inc_local;
-	string inc_lib;
-	string inc_root;
-	string src_ext;
-	string comp_cmd;
-} profile;
-
-profile mprofile(string inc_type, string inc_local, string inc_lib, string inc_root, string src_ext, string comp_cmd){
-	profile ret;
-	ret.inc_type = inc_type;
-	ret.inc_local = inc_local;
-	ret.inc_lib = inc_lib;
-	ret.inc_root = inc_root;
-	ret.src_ext = src_ext;
-	ret.comp_cmd = comp_cmd;
-	return ret;
-}
-
 string proj_name = "";
 string proj_root = "./";
-string bin_out = "a.out";
-string src_dir = "./";
-string obj_dir = "./";
-string inc_dir = "./";
+string bin_out = "bin/a.out";
+string src_dir = "src";
+string obj_dir = "bin/obj";
+string inc_dir = "include";
 string obj_ext = "o";
 string obj_main = "main.o";
-string link_cmd = "echo \"No object linker specified.\"";
-vector<profile> profiles;
+string link_cmd = "ld -o {output} {input}";
+vector<profile> profiles = {
+	{"root", "", "", "%%include \"%s\"", "asm", "nasm -felf$(getconf LONG_BIT) -o {output} {input}"},
+	{"lib local", "#include \"%s\"", "#include <%s>", "", "c", "gcc -c -o {output} {input} -I {include} -masm=intel"},
+	{"lib local", "#include \"%s\"", "#include <%s>", "", "cc", "g++ -c -o {output} {input} -I {include} -masm=intel"},
+	{"lib local", "#include \"%s\"", "#include <%s>", "", "cpp", "g++ -c -o {output} {input} -I {include} -masm=intel"},
+	{"lib local", ".include \"%s\"", ".include \"%s\"", "", "s", "gcc -c -o {output} {input} -I {include} -masm=intel"},
+};
 
-#include "compandlink.hpp"
-#include "lexer.hpp"
-#include "modchecks.hpp"
-#include "msafe.hpp"
-#include "parseapp.hpp"
-#include "srcstruct.hpp"
+#include <boost/filesystem.hpp>
+
+using namespace boost;
+
+#include <compandlink.hh>
+#include <lexer.hh>
+#include <msafe.hh>
+#include <parseapp.hh>
+#include <srcstruct.hh>
 
 template <typename T>
 bool vhas(vector<T> invec, T has){
@@ -79,7 +64,7 @@ int main(int argc, char **argv){
 	for(; argindex < argc; argindex++){
 		if(strcmp(argv[argindex], "-v") == 0){
 			dobuild = false;
-			cout << "cbuild: 3.5.0. vername: RECURSIVE." << "\n";
+			cout << "cbuild: 4.0.0. vername: ULTIMATUM." << "\n";
 		}
 		else if(strcmp(argv[argindex], "clean") == 0){
 			doyes = false;
@@ -91,6 +76,24 @@ int main(int argc, char **argv){
 			cout << "\t-v: Display CBuild version." << "\n";
 			cout << "\t-h: Display CBuild help." << "\n";
 			cout << "\tclean: Clear project object directory of all intermidiate compiler objects." << "\n";
+		}
+		else if(strcmp(argv[argindex], "init") == 0){
+			dobuild = false;
+			string tmp_proj_name = string(std::filesystem::current_path().filename().c_str());
+			std::filesystem::create_directory("bin");
+			std::filesystem::create_directory("src");
+			std::filesystem::create_directory("bin/obj");
+			std::filesystem::create_directory("include");
+			string config_file_base =
+"'" + tmp_proj_name + "'\n"
+"\n"
+"binary_out = 'bin/" + tmp_proj_name + "'\n"
+"\n"
+;
+			ofstream config_file_out("cbuild.make");
+			config_file_out << config_file_base;
+			config_file_out.close();
+			cout << "Created a new project of the current directory called '" + tmp_proj_name + "' successfully.\n";
 		}
 		else{
 			cout << "ERROR: Invalid argument: " << argv[argindex] << "." << "\n";
@@ -130,15 +133,15 @@ int main(int argc, char **argv){
 	parseapp(configfiletoks);
 	chdir(proj_root.c_str());
 	if(!doyes){
-		filesystem::remove_all(obj_dir);
-		filesystem::create_directory(obj_dir);
+		std::filesystem::remove_all(obj_dir);
+		std::filesystem::create_directory(obj_dir);
 		cout << "Cleared intermiediate." << "\n";
 		return 0;
 	}
 	// get the list of source files
 	vector<string> srcfilelist = getlistsrcfilesdir();
 	for(string dirsq : object_dirs){
-		filesystem::create_directories(obj_dir + "/" + dirsq);
+		std::filesystem::create_directories(obj_dir + "/" + dirsq);
 	}
 	// for(string ent : srcfilelist){
 	// 	cout << ent << "\n";
@@ -149,7 +152,7 @@ int main(int argc, char **argv){
 	for(profile prfl : profiles){
 		vector<string> prfl_list;
 		for(string srcfile : srcfilelist){
-			if(filesystem::absolute(srcfile).extension().string() == "." + prfl.src_ext){
+			if(std::filesystem::absolute(srcfile).extension().string() == "." + prfl.src_ext){
 				prfl_list.push_back(srcfile);
 			}
 		}
@@ -175,7 +178,7 @@ int main(int argc, char **argv){
 		
 		for(int file = 0; file < urelates[rel].size(); file++){
 			
-			if(filesystem::exists(urelates[rel][file]) && !vhas(tmp, urelates[rel][file])){
+			if(std::filesystem::exists(urelates[rel][file]) && !vhas(tmp, urelates[rel][file])){
 				
 				tmp.push_back(urelates[rel][file]);
 				
@@ -210,7 +213,7 @@ int main(int argc, char **argv){
 	// return 0;
 	vector<string> objectfiles;
 	for(string srcfileli : srcfilelist){
-		objectfiles.push_back(replacerootdir(filesystem::relative(srcfileli).replace_extension(obj_ext).string(), obj_dir));
+		objectfiles.push_back(replacerootdir(std::filesystem::relative(srcfileli).replace_extension(obj_ext).string(), obj_dir));
 		// cout << replacerootdir(filesystem::relative(srcfileli).replace_extension(obj_ext).string(), obj_dir) << "\n";
 	}
 	// return 0;

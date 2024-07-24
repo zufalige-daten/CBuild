@@ -12,23 +12,11 @@
  * This file is: "parseapp.hpp".
 */
 
-/*
- * string proj_name = "";
- * string bin_out = "a.out";
- * string src_dir = "./";
- * string obj_dir = "./";
- * string inc_dir = "./";
- * string obj_ext = "o";
- * string obj_main = "main.o";
- * string link_cmd = "echo \"No object linker specified.\"";
- * vector<profile> profiles;
-*/
-
-// profile mprofile(string inc_type, string inc_local, string inc_lib, string src_ext, string comp_cmd)
-
 #include <iostream>
 #include <vector>
 #include <string>
+#include <lexer.hh>
+#include <main.hh>
 
 vector<token> configfiletoks;
 int toki = 0;
@@ -82,6 +70,20 @@ void parseapp(vector<token> configfiletoks_){
 			else if(val == "object_dir"){
 				obj_dir = text;
 			}
+			else if(val == "link"){
+				if(text == "gcc"){
+					link_cmd = "gcc -o {output} {input}";
+				}
+				else if(text == "g++"){
+					link_cmd = "g++ -o {output} {input}";
+				}
+				else if(text == "clang"){
+					link_cmd = "clang -o {output} {input}";
+				}
+				else if(text == "clang++"){
+					link_cmd = "clang++ -o {output} {input}";
+				}
+			}
 			else if(val == "include_dir"){
 				inc_dir = text;
 			}
@@ -130,6 +132,12 @@ void parseapp(vector<token> configfiletoks_){
 				}
 				else if(val == "source_ext"){
 					src_ext = text;
+					for(int pr = 0; pr < profiles.size(); pr++){
+						if(profiles[pr].src_ext == src_ext){
+							profiles.erase(profiles.begin() + pr);
+							break;
+						}
+					}
 				}
 				else if(val == "compiler_command"){
 					com_cmd = text;
@@ -140,12 +148,15 @@ void parseapp(vector<token> configfiletoks_){
 				}
 			}
 			toki++;
-			profiles.push_back(mprofile(inc_type, inc_local, inc_lib, inc_root, src_ext, com_cmd));
+			profiles.push_back({inc_type, inc_local, inc_lib, inc_root, src_ext, com_cmd});
 		}
 		else{
 			cout << "ERROR <config>: At line " << configfiletoks[toki].linenumber << " unknown configuration entry '" << configfiletoks[toki].text << "'." << "\n";
 			exit(-1);
 		}
+	}
+	if(bin_out == "bin/a.out" && proj_name != ""){
+		bin_out = "bin/" + proj_name;
 	}
 }
 

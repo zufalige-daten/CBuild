@@ -12,11 +12,9 @@
  * This file is: "msafe.hpp".
 */
 
-#pragma once
-
 #include <iostream>
 #include <vector>
-#include "lexer.hpp"
+#include <msafe.hh>
 
 using namespace std;
 

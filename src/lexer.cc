@@ -12,12 +12,11 @@
  * This file is: "lexer.hpp".
 */
 
-#pragma once
-
 #include <iostream>
 #include <stdlib.h>
 #include <ctype.h>
 #include <vector>
+#include <lexer.hh>
 
 using namespace std;
 
@@ -29,20 +28,6 @@ const int _OP_CLOSE = 3;
 const int _STRING = 4;
 const int _INCSTRING = 5;
 const int _OP = 6;
-
-typedef struct{
-	string text;
-	int type;
-	int linenumber;
-} token;
-
-token mtoken(string text, int type, int linenumber){
-	token ret;
-	ret.text = text;
-	ret.type = type;
-	ret.linenumber = linenumber;
-	return ret;
-}
 
 vector<token> tokenize(string text){
 	vector<token> ret;
@@ -67,18 +52,18 @@ vector<token> tokenize(string text){
 				text_z += text[index];
 				index++;
 			}
-			ret.push_back(mtoken(text_z, _IDENT, ln));
+			ret.push_back({text_z, _IDENT, ln});
 		}
 		else if(text[index] == '='){
-			ret.push_back(mtoken("=", _OP_EQ, ln));
+			ret.push_back({"=", _OP_EQ, ln});
 			index++;
 		}
 		else if(text[index] == '{'){
-			ret.push_back(mtoken("{", _OP_OPEN, ln));
+			ret.push_back({"{", _OP_OPEN, ln});
 			index++;
 		}
 		else if(text[index] == '}'){
-			ret.push_back(mtoken("}", _OP_CLOSE, ln));
+			ret.push_back({"}", _OP_CLOSE, ln});
 			index++;
 		}
 		else if(text[index] == '\''){
@@ -89,7 +74,7 @@ vector<token> tokenize(string text){
 				index++;
 			}
 			index++;
-			ret.push_back(mtoken(text_z, _STRING, ln));
+			ret.push_back({text_z, _STRING, ln});
 		}
 		else if(text[index] == '"'){
 			string text_z = "";
@@ -99,7 +84,7 @@ vector<token> tokenize(string text){
 				index++;
 			}
 			index++;
-			ret.push_back(mtoken(text_z, _STRING, ln));
+			ret.push_back({text_z, _STRING, ln});
 		}
 		else if(text[index] == '<'){
 			string text_z = "";
@@ -109,14 +94,14 @@ vector<token> tokenize(string text){
 				index++;
 			}
 			index++;
-			ret.push_back(mtoken(text_z, _INCSTRING, ln));
+			ret.push_back({text_z, _INCSTRING, ln});
 		}
 		else{
-			ret.push_back(mtoken(string(1, text[index]), _OP, ln));
+			ret.push_back({string(1, text[index]), _OP, ln});
 			index++;
 		}
 	}
-	ret.push_back(mtoken("", _EOF, ln));
+	ret.push_back({"", _EOF, ln});
 	return ret;
 }
 

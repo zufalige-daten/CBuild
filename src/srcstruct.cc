@@ -12,8 +12,6 @@
  * This file is: "srcstruct.hpp".
 */
 
-#pragma once
-
 #include <vector>
 #include <iostream>
 #include <filesystem>
@@ -21,28 +19,28 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <boost/algorithm/string/trim.hpp>
-#include "msafe.hpp"
+#include <msafe.hh>
+#include <main.hh>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <set>
-#include <boost/filesystem.hpp>
+#include <srcstruct.hh>
 
 using namespace boost::algorithm;
-using namespace boost;
 using namespace std;
 
 vector<string> object_dirs;
 
 vector<string> getlistsrcfilesdir(){
 	vector<string> ret;
-	for (const auto & entry : filesystem::recursive_directory_iterator(src_dir)){
-		string tmp = filesystem::path(entry).string();
+	for (const auto & entry : std::filesystem::recursive_directory_iterator(src_dir)){
+		string tmp = std::filesystem::path(entry).string();
 		for(profile prfl : profiles){
-			if(filesystem::path(tmp).extension().string() == "." + prfl.src_ext){
+			if(std::filesystem::path(tmp).extension().string() == "." + prfl.src_ext){
 				ret.push_back(tmp);
-				string srcless_path = tmp.substr(tmp.find_first_of(filesystem::path::preferred_separator));
-				string new_dir = srcless_path.substr(1, srcless_path.find_last_of(filesystem::path::preferred_separator) - 1);
-				if(filesystem::is_directory(src_dir + "/" + new_dir)){
+				string srcless_path = tmp.substr(tmp.find_first_of(std::filesystem::path::preferred_separator));
+				string new_dir = srcless_path.substr(1, srcless_path.find_last_of(std::filesystem::path::preferred_separator) - 1);
+				if(std::filesystem::is_directory(src_dir + "/" + new_dir)){
 					if(find(object_dirs.begin(), object_dirs.end(), new_dir) == object_dirs.end()){
 						object_dirs.push_back(new_dir);
 					}
@@ -54,7 +52,7 @@ vector<string> getlistsrcfilesdir(){
 }
 
 string replacerootdir(string repath, string root_dir){
-	string ret = root_dir + repath.substr(repath.find_first_of(filesystem::path::preferred_separator));
+	string ret = root_dir + repath.substr(repath.find_first_of(std::filesystem::path::preferred_separator));
 	return ret;
 }
 
@@ -139,7 +137,7 @@ vector<vector<string>> getsrcfilerecurrels(vector<string> srcfilelist, profile p
 					entry.push_back(ret_temp_single);
 				}
 			}
-			else if(matchagainst(line, prfl.inc_local, output) && prfl.inc_type.find("local") != string::npos){
+			if(matchagainst(line, prfl.inc_local, output) && prfl.inc_type.find("local") != string::npos){
 				entry.push_back(src_dir + "/" + output);
 				vector<string> list__;
 				list__.push_back(src_dir + "/" + output);
@@ -149,7 +147,7 @@ vector<vector<string>> getsrcfilerecurrels(vector<string> srcfilelist, profile p
 					entry.push_back(ret_temp_single);
 				}
 			}
-			else if(matchagainst(line, prfl.inc_root, output) && prfl.inc_type.find("root") != string::npos){
+			if(matchagainst(line, prfl.inc_root, output) && prfl.inc_type.find("root") != string::npos){
 				entry.push_back(output);
 				vector<string> list__;
 				list__.push_back(output);

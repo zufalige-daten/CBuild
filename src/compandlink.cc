@@ -5,11 +5,7 @@
  * The following project "CBuild" is written by Gunraj Singh Mann and published under the GNU General
  * Public License.
  *
- * You may freely modify and distribute this source code and the binary executable file as long as you reference
- * "Gunraj Singh Mann" or "Zufalige Daten On Github" as the origional programmer of any source code taken from
- * this project or this project as a whole.
- *
- * This file is: "compandlink.hpp".
+ * This file is "compandlink.cc".
 */
 
 #include <iostream>
@@ -20,16 +16,20 @@
 #include <filesystem>
 #include <vector>
 #include <boost/algorithm/string/replace.hpp>
-#include "srcstruct.hpp"
+#include <srcstruct.hh>
+#include <cstdlib>
+#include <main.hh>
+
+using namespace std;
 
 vector<string> compilelistget(vector<vector<string>> relates){
 	vector<string> srccompilelist;
 	for(vector<string> relate : relates){
-		string object_file = replacerootdir(filesystem::relative(relate[0]).replace_extension(obj_ext).string(), obj_dir);
-		if(filesystem::exists(object_file)){
-			uint64_t lmodified_obj = filesystem::last_write_time(object_file);
+		string object_file = replacerootdir(std::filesystem::relative(relate[0]).replace_extension(obj_ext).string(), obj_dir);
+		if(std::filesystem::exists(object_file)){
+			uint64_t lmodified_obj = std::filesystem::last_write_time(object_file).time_since_epoch().count();
 			for(int i = 0; i < relate.size(); i++){
-				uint64_t lmodified_src = filesystem::last_write_time(relate[i]);
+				uint64_t lmodified_src = std::filesystem::last_write_time(relate[i]).time_since_epoch().count();
 				if(lmodified_src > lmodified_obj){
 					srccompilelist.push_back(relate[0]);
 					break;
@@ -47,8 +47,8 @@ void recompile(vector<string> srccompilelist){
 	cout << "Building " << proj_name << " in directory " << proj_root << ".\n";
 	for(string srccompileli : srccompilelist){
 		for(profile prfl : profiles){
-			if(filesystem::absolute(srccompileli).extension().string() == "." + prfl.src_ext){
-				string compilecommand = boost::replace_all_copy(boost::replace_all_copy(boost::replace_all_copy(prfl.comp_cmd, "{input}", srccompileli), "{output}", replacerootdir(filesystem::relative(srccompileli).replace_extension(obj_ext).string(), obj_dir)), "{include}", inc_dir);
+			if(std::filesystem::absolute(srccompileli).extension().string() == "." + prfl.src_ext){
+				string compilecommand = boost::replace_all_copy(boost::replace_all_copy(boost::replace_all_copy(prfl.comp_cmd, "{input}", srccompileli), "{output}", replacerootdir(std::filesystem::relative(srccompileli).replace_extension(obj_ext).string(), obj_dir)), "{include}", inc_dir);
 				int result = std::system(compilecommand.c_str());
 				cout << " - " << srccompileli << " ";
 				if(result == 0){
