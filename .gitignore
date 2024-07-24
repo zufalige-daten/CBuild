@@ -1,7 +1,4 @@
-.vscode
 arch
 example
 cbuild
-cbuild_*
-cbuild.*
 package.sh

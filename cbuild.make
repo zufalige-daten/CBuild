@@ -1,0 +1,4 @@
+'cbuild'
+
+link = "g++"
+
