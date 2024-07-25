@@ -25,3 +25,6 @@ extern string obj_main;
 extern string link_cmd;
 extern vector<profile> profiles;
 
+#define VERNAME "ULTIMATUM"
+#define VERNUM "4.0.0"
+
