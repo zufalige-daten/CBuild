@@ -64,7 +64,7 @@ int main(int argc, char **argv){
 	for(; argindex < argc; argindex++){
 		if(strcmp(argv[argindex], "-v") == 0){
 			dobuild = false;
-			cout << "cbuild: 4.0.0. vername: ULTIMATUM." << "\n";
+			cout << "cbuild: " << VERNUM << ". vername: " << VERNAME << "." << "\n";
 		}
 		else if(strcmp(argv[argindex], "clean") == 0){
 			doyes = false;
