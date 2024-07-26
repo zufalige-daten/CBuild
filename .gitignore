@@ -2,3 +2,4 @@ arch
 example
 cbuild
 package.sh
+bin/obj/*.o
