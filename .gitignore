@@ -1,5 +1,4 @@
-arch
-example
-cbuild
-package.sh
+bin/cbuild
 bin/obj/*.o
+github-copy.sh
+
