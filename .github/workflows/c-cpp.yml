@@ -13,5 +13,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: make
+    - name: dependancy-installer
+    - run: apt-get update && apt-get install libboost-all-dev
+    - name: build
       run: make
