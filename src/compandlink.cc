@@ -47,7 +47,11 @@ void recompile(vector<string> srccompilelist){
 	cout << "Building " << proj_name << " in directory " << proj_root << ".\n";
 	for(string srccompileli : srccompilelist){
 		for(profile prfl : profiles){
-			if(std::filesystem::absolute(srccompileli).extension().string() == "." + prfl.src_ext){
+			std::filesystem::path path0 = std::filesystem::absolute(srccompileli);
+			string filename0 = path0.filename().string();
+			string extension0 = string(std::find(filename0.begin(), filename0.end(), '.'), filename0.end());
+			cout << extension0 << "\n";
+			if(extension0 == "." + prfl.src_ext){
 				string compilecommand = boost::replace_all_copy(boost::replace_all_copy(boost::replace_all_copy(prfl.comp_cmd, "{input}", srccompileli), "{output}", replacerootdir(std::filesystem::relative(srccompileli).replace_extension(obj_ext).string(), obj_dir)), "{include}", inc_dir);
 				int result = std::system(compilecommand.c_str());
 				cout << " - " << srccompileli << " ";
@@ -65,10 +69,9 @@ void recompile(vector<string> srccompilelist){
 }
 
 void relinkobj(vector<string> objfilelist){
-	string ins = obj_dir + "/" + obj_main + " ";
+	string ins = "";
 	for(string objfile : objfilelist){
-		if(objfile != obj_dir + "/" + obj_main)
-			ins += objfile + " ";
+		ins += objfile + " ";
 	}
 	ins.pop_back();
 	string linkcommand = boost::replace_all_copy(boost::replace_all_copy(link_cmd, "{input}", ins), "{output}", bin_out);

@@ -13,6 +13,7 @@
 */
 
 #include <iostream>
+#include <tuple>
 #include <vector>
 #include <string>
 #include <lexer.hh>
@@ -58,6 +59,12 @@ void parseapp(vector<token> configfiletoks_){
 			string text = configfiletoks[toki].text;
 			int linenumber = configfiletoks[toki].linenumber;
 			toki++;
+			string args = configfiletoks[toki].text;
+			if(configfiletoks[toki].type != _STRING){
+				args = "";
+				toki--;
+			}
+			toki++;
 			if(val == "project_root"){
 				proj_root = text + "/";
 			}
@@ -72,16 +79,19 @@ void parseapp(vector<token> configfiletoks_){
 			}
 			else if(val == "link"){
 				if(text == "gcc"){
-					link_cmd = "gcc -o {output} {input}";
+					link_cmd = "gcc -o {output} {input} " + args;
 				}
 				else if(text == "g++"){
-					link_cmd = "g++ -o {output} {input}";
+					link_cmd = "g++ -o {output} {input} " + args;
 				}
 				else if(text == "clang"){
-					link_cmd = "clang -o {output} {input}";
+					link_cmd = "clang -o {output} {input} " + args;
 				}
 				else if(text == "clang++"){
-					link_cmd = "clang++ -o {output} {input}";
+					link_cmd = "clang++ -o {output} {input} " + args;
+				}
+				else if(text == "ld"){
+					link_cmd = "ld -o {output} {input} " + args;
 				}
 			}
 			else if(val == "include_dir"){
@@ -91,10 +101,40 @@ void parseapp(vector<token> configfiletoks_){
 				obj_ext = text;
 			}
 			else if(val == "object_main"){
-				obj_main = text;
+				cout << "WARNING <config>: At line " << linenumber << " object_main directive is depricated and so does nothing." << "\n";
 			}
 			else if(val == "linker_command"){
 				link_cmd = text;
+			}
+			else if(val == "compile"){ // avaliable: gcc, g++, clang, clang++, nasm, fasm, rustc, i386-elf-gcc, i686-elf-gcc, x86_64-elf-gcc.
+				tuple<string, profile> master[] = {
+					{"gcc", {"lib local", "#include \"%s\"", "#include <%s>", "", "c", "gcc -c -o {output} {input} -I {include} " + args}},
+					{"g++", {"lib local", "#include \"%s\"", "#include <%s>", "", "cpp", "g++ -c -o {output} {input} -I {include} " + args}},
+					{"clang", {"lib local", "#include \"%s\"", "#include <%s>", "", "c", "clang -c -o {output} {input} -I {include} " + args}},
+					{"clang++", {"lib local", "#include \"%s\"", "#include <%s>", "", "cpp", "clang++ -c -o {output} {input} -I {include} " + args}},
+					{"nasm", {"root", "", "", "%%include \"%s\"", "asm", "nasm -o {output} {input} " + args}},
+					{"fasm", {"root", "", "", "include \"%s\"", "asm", "fasm {input} {output} " + args}},
+					{"rustc", {"", "", "", "", "rs", "rustc --emit=obj -o {output} {input} -I {include} " + args}}, // WIP.
+					{"i386-elf-gcc", {"lib local", "#include \"%s\"", "#include <%s>", "", "32.c", "i386-elf-gcc -c -o {output} {input} -I {include} " + args}},
+					{"i686-elf-gcc", {"lib local", "#include \"%s\"", "#include <%s>", "", "32.c", "i686-elf-gcc -c -o {output} {input} -I {include} " + args}},
+					{"x86_64-elf-gcc", {"lib local", "#include \"%s\"", "#include <%s>", "", "c", "x86_64-elf-gcc -c -o {output} {input} -I {include} " + args}},
+				};
+				tuple<string, profile> master2[] = { // All because c++ has to be complicated and have two extensions.
+					{"g++", {"lib local", "#include \"%s\"", "#include <%s>", "", "cc", "g++ -c -o {output} {input} -I {include} " + args}},
+					{"clang++", {"lib local", "#include \"%s\"", "#include <%s>", "", "cc", "clang++ -c -o {output} {input} -I {include} " + args}},
+				};
+				for(tuple<string, profile> individual : master){
+					if(get<0>(individual) == text){
+						profiles.push_back(get<1>(individual));
+						break;
+					}
+				}
+				for(tuple<string, profile> individual2 : master2){
+					if(get<0>(individual2) == text){
+						profiles.push_back(get<1>(individual2));
+						break;
+					}
+				}
 			}
 			else{
 				cout << "ERROR <config>: At line " << linenumber << " unknown configuration entry '" << val << "'." << "\n";
