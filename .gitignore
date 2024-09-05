@@ -1,4 +1,5 @@
 bin/cbuild
 bin/obj/*.o
 github-copy.sh
+example
 
