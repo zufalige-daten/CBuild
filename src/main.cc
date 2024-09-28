@@ -8,6 +8,7 @@
  * This file is "main.cc".
 */
 
+#include <algorithm>
 #include <cstddef>
 #include <iostream>
 #include <string.h>
@@ -57,6 +58,8 @@ bool vhas(vector<T> invec, T has){
 }
 
 int main(int argc, char **argv){
+	/* test_splitting_workload();
+	return 0; */
 	// parse arguments
 	int argindex = 1;
 	bool dobuild = true;
@@ -149,11 +152,12 @@ int main(int argc, char **argv){
 	// create a file relationship table with the source files and the headers / include files they use
 	vector<vector<string>> urelates;
 	vector<vector<string>> srcfilelist_arranged;
-	for(profile prfl : profiles){
+	for(string srcfile : srcfilelist){
 		vector<string> prfl_list;
-		for(string srcfile : srcfilelist){
+		for(profile prfl : profiles){
 			if(std::filesystem::absolute(srcfile).extension().string() == "." + prfl.src_ext){
 				prfl_list.push_back(srcfile);
+				break;
 			}
 		}
 		srcfilelist_arranged.push_back(prfl_list);
@@ -188,6 +192,10 @@ int main(int argc, char **argv){
 		
 		relates.push_back(tmp);
 	}
+
+	// filter relates
+	relates.erase(unique(relates.begin(), relates.end()), relates.end());
+	srcfilelist.erase(unique(srcfilelist.begin(), srcfilelist.end()), srcfilelist.end());
 	
 	// for(vector<string> relate : relates){
 		
