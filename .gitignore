@@ -2,4 +2,10 @@ bin/cbuild
 bin/obj/*.o
 github-copy.sh
 example
+cbuild-*
+src/bin
+src/*.tar.gz
+src/CBuild-*
+pkg
+*.tar.gz
 
