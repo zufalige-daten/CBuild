@@ -13,78 +13,131 @@ if &shortmess =~ 'A'
 else
   set shortmess=aoO
 endif
-badd +1 src/main.cc
-badd +129 src/parseapp.cc
-badd +8 example/cbuild.make
-badd +91 src/compandlink.cc
-badd +27 src/subprocess_handle.c
-badd +1 cbuild.make
-badd +1 include/subprocess_handle.h
-badd +1 src/subprocess_handle.cc
-badd +5 .gitignore
-badd +10 include/compandlink.hh
+badd +9 src/subprocess_handle.cc
+badd +210 src/compandlink.cc
+badd +1 tests/Make
+badd +3 tests/Makefile
+badd +1 tests/test_subprocess_handle.c
+badd +2 tests/test_subprocess_handle.cc
+badd +1 Makefile
+badd +32 src/main.cc
+badd +16 include/compandlink.hh
+badd +6 example/bootmanager/cbuild.make
+badd +1 example/kernel/cbuild.make
+badd +23 ~/Local-Repos/Tethered-OS/bootmanager/cbuild.make
+badd +132 src/parseapp.cc
+badd +27 ~/Local-Repos/Tethered-OS/kernel/cbuild.make
+badd +19 example/build.sh
+badd +26 src/srcstruct.cc
+badd +8 example/bootmanager/src/multiboot.asm
+badd +3 compile_flags.txt
+badd +17 include/main.hh
 argglobal
 %argdel
-$argadd src/main.cc
+$argadd src/subprocess_handle.cc
 set stal=2
 tabnew +setlocal\ bufhidden=wipe
 tabnew +setlocal\ bufhidden=wipe
 tabnew +setlocal\ bufhidden=wipe
 tabnew +setlocal\ bufhidden=wipe
 tabnew +setlocal\ bufhidden=wipe
+tabnew +setlocal\ bufhidden=wipe
+tabnew +setlocal\ bufhidden=wipe
+tabnew +setlocal\ bufhidden=wipe
+tabnew +setlocal\ bufhidden=wipe
+tabnew +setlocal\ bufhidden=wipe
 tabrewind
+edit src/subprocess_handle.cc
+argglobal
+let s:l = 7 - ((6 * winheight(0) + 27) / 55)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 7
+normal! 04|
+tabnext
 edit src/main.cc
 argglobal
-let s:l = 229 - ((36 * winheight(0) + 27) / 55)
+let s:l = 130 - ((28 * winheight(0) + 27) / 55)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 229
+keepjumps 130
 normal! 0
 tabnext
-edit src/compandlink.cc
+edit src/srcstruct.cc
 argglobal
-balt cbuild.make
-let s:l = 87 - ((10 * winheight(0) + 27) / 55)
+let s:l = 40 - ((39 * winheight(0) + 27) / 55)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 87
+keepjumps 40
 normal! 0
 tabnext
-edit include/compandlink.hh
+edit Makefile
 argglobal
-balt src/compandlink.cc
+let s:l = 29 - ((28 * winheight(0) + 27) / 55)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 29
+normal! 0
+tabnext
+tabnext
+edit example/bootmanager/cbuild.make
+argglobal
 let s:l = 10 - ((9 * winheight(0) + 27) / 55)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
 keepjumps 10
-normal! 018|
+normal! 0
 tabnext
-edit src/subprocess_handle.cc
+edit example/kernel/cbuild.make
 argglobal
-balt src/subprocess_handle.c
-let s:l = 27 - ((26 * winheight(0) + 27) / 55)
+let s:l = 10 - ((9 * winheight(0) + 27) / 55)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 27
+keepjumps 10
 normal! 0
 tabnext
+edit include/compandlink.hh
 argglobal
-enew
+let s:l = 16 - ((15 * winheight(0) + 27) / 55)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 16
+normal! $
+tabnext
+edit src/compandlink.cc
+argglobal
+let s:l = 213 - ((54 * winheight(0) + 27) / 55)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 213
+normal! 0
 tabnext
 edit src/parseapp.cc
 argglobal
-balt src/main.cc
-let s:l = 157 - ((54 * winheight(0) + 27) / 55)
+let s:l = 135 - ((30 * winheight(0) + 27) / 55)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 157
-normal! 026|
-tabnext 3
+keepjumps 135
+normal! 012|
+tabnext
+edit include/main.hh
+argglobal
+let s:l = 34 - ((33 * winheight(0) + 27) / 55)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 34
+normal! 0
+tabnext 5
 set stal=1
 if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
   silent exe 'bwipe ' . s:wipebuf
@@ -98,7 +151,6 @@ if filereadable(s:sx)
 endif
 let &g:so = s:so_save | let &g:siso = s:siso_save
 set hlsearch
-nohlsearch
 doautoall SessionLoadPost
 unlet SessionLoad
 " vim: set ft=vim :

@@ -1,5 +1,5 @@
-CFLAGS=-I include -c -o
-LFLAGS=-o
+CFLAGS=-I include -c -g -std=c++20 -o
+LFLAGS=-g -o
 
 all: bin/obj/main.o bin/obj/lexer.o bin/obj/compandlink.o bin/obj/msafe.o bin/obj/parseapp.o bin/obj/srcstruct.o bin/obj/subprocess_handle.o
 	g++ bin/obj/*.o $(LFLAGS) bin/cbuild
@@ -23,4 +23,7 @@ in-cbuild:
 
 install:
 	cp bin/cbuild /usr/local/bin/cbuild
+
+clean:
+	rm bin/obj/*.o
 

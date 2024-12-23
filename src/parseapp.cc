@@ -18,6 +18,7 @@
 #include <string>
 #include <lexer.hh>
 #include <main.hh>
+#include <algorithm>
 
 vector<token> configfiletoks;
 int toki = 0;

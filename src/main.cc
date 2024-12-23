@@ -29,13 +29,7 @@ string inc_dir = "include";
 string obj_ext = "o";
 string obj_main = "main.o";
 string link_cmd = "ld -o {output} {input}";
-vector<profile> profiles = {
-	{"root", "", "", "%%include \"%s\"", "asm", "nasm -felf$(getconf LONG_BIT) -o {output} {input}"},
-	{"lib local", "#include \"%s\"", "#include <%s>", "", "c", "gcc -c -o {output} {input} -I {include} -masm=intel"},
-	{"lib local", "#include \"%s\"", "#include <%s>", "", "cc", "g++ -c -o {output} {input} -I {include} -masm=intel"},
-	{"lib local", "#include \"%s\"", "#include <%s>", "", "cpp", "g++ -c -o {output} {input} -I {include} -masm=intel"},
-	{"lib local", ".include \"%s\"", ".include \"%s\"", "", "s", "gcc -c -o {output} {input} -I {include} -masm=intel"},
-};
+vector<profile> profiles = {{"", "", "", "", "old", "echo \"Skipped old file appropriately.\""}};
 
 #include <boost/filesystem.hpp>
 

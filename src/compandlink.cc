@@ -126,10 +126,10 @@ int compile_list(void){
 				}
 				int result = pclose(process);
 				if(result == 0){
-					cout << stdput << " - " << srccompileli << " " << "\033[92;1m[SUCCESS]\033[0m\n";
+					cout << stdput << "\033[92;1m[SUCCESS]\033[0m\n" << " - " << srccompileli << " - " << compilecommand << " ";
 				}
 				else{
-					cout << stdput << " - " << srccompileli << " " << "\033[31;1m[FAILURE]\033[0m (program returned " << result << "; see above.)\n";
+					cout << stdput << "\033[31;1m[FAILURE]\033[0m" << " - " << srccompileli << " - " << compilecommand << " (program returned " << result << "; see above.)\n";
 					*return_area = -1;
 					exit(-1);
 				}
@@ -204,10 +204,10 @@ void relinkobj(vector<string> objfilelist){
 	}
 	int result = pclose(process);
 	if(result == 0){
-		cout << stdput << " - " << bin_out << " " << "\033[92;1m[SUCCESS]\033[0m\n";
+		cout << stdput << "\033[92;1m[SUCCESS]\033[0m\n" << " - " << bin_out << " ";
 	}
 	else{
-		cout << stdput << " - " << bin_out << " " << "\033[31;1m[FAILURE]\033[0m (program returned " << result << "; see above.)\n";
+		cout << stdput << "\033[31;1m[FAILURE]\033[0m" << " - " << bin_out << " (program returned " << result << "; see above.)\n";
 		exit(-1);
 	}
 }
